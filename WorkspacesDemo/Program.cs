@@ -21,13 +21,15 @@ void PrintVisualStudioInstanceInfo(VisualStudioInstance x)
     Console.WriteLine($"DiscoveryType: {x.DiscoveryType}");
 }
 
-/*
-var instances = MSBuildLocator.QueryVisualStudioInstances();
-foreach (var instance in instances)
+void PrintInstances()
 {
-    PrintVisualStudioInstanceInfo(instance);
+    var instances = MSBuildLocator.QueryVisualStudioInstances();
+    foreach (var instance in instances)
+    {
+        PrintVisualStudioInstanceInfo(instance);
+    }
 }
-//*/
+
 
 void Register()
 {
@@ -39,6 +41,7 @@ void Register()
     PrintVisualStudioInstanceInfo(defaultInstance);
 }
 
+PrintInstances();
 Register();
 
 
