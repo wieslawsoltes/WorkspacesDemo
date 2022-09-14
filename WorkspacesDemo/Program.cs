@@ -86,6 +86,24 @@ async Task PrintSolution(Solution solution)
     }
 }
 
+void PrintSolutionInfo(SolutionInfo solutionInfo)
+{
+    foreach (var projectInfo in solutionInfo.Projects)
+    {
+        Console.WriteLine($"[Projects] {projectInfo.Name}");
+
+        foreach (var document in projectInfo.Documents)
+        {
+            Console.WriteLine($"  [Documents] {document.Name}");
+        }
+
+        foreach (var document in projectInfo.AdditionalDocuments)
+        {
+            Console.WriteLine($"  [AdditionalDocuments] {document.Name}");
+        }
+    }
+}
+
 async Task Load1(string path)
 {
     try
@@ -110,19 +128,7 @@ async Task Load2(string path)
         var loader = new MSBuildProjectLoader(workspace);
         var solutionInfo = await loader.LoadSolutionInfoAsync(path);
 
-        foreach (var projectInfo in solutionInfo.Projects)
-        {
-            Console.WriteLine($"[Projects] {projectInfo.Name}");
-
-            foreach (var document in projectInfo.Documents)
-            {
-                Console.WriteLine($"  [Documents] {document.Name}");
-            }
-            foreach (var document in projectInfo.AdditionalDocuments)
-            {
-                Console.WriteLine($"  [AdditionalDocuments] {document.Name}");
-            }
-        }
+        PrintSolutionInfo(solutionInfo);
     }
     catch (Exception e)
     {
