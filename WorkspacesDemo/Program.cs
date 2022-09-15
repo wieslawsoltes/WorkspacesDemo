@@ -8,13 +8,16 @@ using Microsoft.CodeAnalysis.MSBuild;
 
 Register();
 
-var path1 = "/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.sln";
-//var path1 = @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.sln";
+var solutionPath = @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.sln";
+var projectPath = @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj";
 
-await Run(path1);
+//var solutionPath = "/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.sln";
+//var projectPath = @"/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.Fluent/WalletWasabi.Fluent.csproj";
+
+await Run(solutionPath, projectPath);
 return;
-//await Load1(path1);
-await Load2(path1);
+//await Load1(solutionPath);
+await Load2(solutionPath);
 
 void PrintVisualStudioInstanceInfo(VisualStudioInstance x)
 {
@@ -44,11 +47,9 @@ void Register()
     PrintVisualStudioInstanceInfo(defaultInstance);
 }
 
-async Task Run(string path)
+async Task Run(string solutionFilePath, string projectFilePath)
 {
-    var projectFilePath = @"/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.Fluent/WalletWasabi.Fluent.csproj";
-    //var projectFilePath = @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj";
-    AnalyzerManager manager = new AnalyzerManager(path);
+    AnalyzerManager manager = new AnalyzerManager(solutionFilePath);
 
     foreach (var project in manager.Projects)
     {
@@ -58,8 +59,20 @@ async Task Run(string path)
     //*
     IProjectAnalyzer analyzer = manager.GetProject(projectFilePath);
 
-    var result = analyzer.Build();
+    var analyzerResults = analyzer.Build();
 
+    foreach (var analyzerResult in analyzerResults)
+    {
+        if (analyzerResult.Items.TryGetValue("AvaloniaXaml", out var projectItems))
+        {
+            foreach (var projectItem in projectItems)
+            {
+                Console.WriteLine($"[AvaloniaXaml] {projectItem.ItemSpec}");
+            }
+        }
+    }
+
+    
     AdhocWorkspace workspace = analyzer.GetWorkspace();
     
     await PrintSolution(workspace.CurrentSolution);
@@ -104,12 +117,12 @@ void PrintSolutionInfo(SolutionInfo solutionInfo)
     }
 }
 
-async Task Load1(string path)
+async Task Load1(string solutionFilePath)
 {
     try
     {
         var workspace = MSBuildWorkspace.Create();
-        var solution = await workspace.OpenSolutionAsync(path);
+        var solution = await workspace.OpenSolutionAsync(solutionFilePath);
  
         await PrintSolution(solution);
     }
@@ -120,13 +133,13 @@ async Task Load1(string path)
     }
 }
 
-async Task Load2(string path)
+async Task Load2(string solutionFilePath)
 {
     try
     {
         var workspace = MSBuildWorkspace.Create();
         var loader = new MSBuildProjectLoader(workspace);
-        var solutionInfo = await loader.LoadSolutionInfoAsync(path);
+        var solutionInfo = await loader.LoadSolutionInfoAsync(solutionFilePath);
 
         PrintSolutionInfo(solutionInfo);
     }
