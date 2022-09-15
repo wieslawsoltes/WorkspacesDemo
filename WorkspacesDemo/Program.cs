@@ -72,7 +72,6 @@ async Task Run(string solutionFilePath, string projectFilePath)
         }
     }
 
-    
     AdhocWorkspace workspace = analyzer.GetWorkspace();
     
     await PrintSolution(workspace.CurrentSolution);
