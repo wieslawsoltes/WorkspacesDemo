@@ -88,12 +88,12 @@ async Task PrintSolution(Solution solution)
 
         foreach (var document in project.Documents)
         {
-            Console.WriteLine($"  [Documents] {document.Name}");
+            //Console.WriteLine($"  [Documents] {document.Name}");
         }
 
         foreach (var document in project.AdditionalDocuments)
         {
-            Console.WriteLine($"  [AdditionalDocuments] {document.Name}");
+           // Console.WriteLine($"  [AdditionalDocuments] {document.Name}");
         }
     }
 }
