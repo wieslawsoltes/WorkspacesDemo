@@ -76,7 +76,7 @@ public class ProjectLoader
 
         var errors = result.Diagnostics.Where(x => x.Severity == DiagnosticSeverity.Error);
 
-        if (!result.Success)
+        if (!result.Success || errors.Any())
         {
             return null;
         }
