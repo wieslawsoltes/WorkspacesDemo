@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -17,11 +18,17 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        SolutionPath.Text =  "/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.sln";
-        ProjectPath.Text = @"/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.Fluent/WalletWasabi.Fluent.csproj";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            SolutionPath.Text =  @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.sln";
+            ProjectPath.Text = @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj";
+        }
 
-        //SolutionPath.Text =  @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.sln";
-        //ProjectPath.Text = @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            SolutionPath.Text =  @"/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.sln";
+            ProjectPath.Text = @"/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.Fluent/WalletWasabi.Fluent.csproj";
+        }
     }
 
     private async void LoadButton_OnClick(object? sender, RoutedEventArgs e)
