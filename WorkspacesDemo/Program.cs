@@ -1,4 +1,5 @@
-﻿using Buildalyzer;
+﻿using System.Runtime.InteropServices;
+using Buildalyzer;
 using Buildalyzer.Workspaces;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
@@ -8,11 +9,22 @@ using Microsoft.CodeAnalysis.MSBuild;
 
 Register();
 
-var solutionPath = @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.sln";
-var projectPath = @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj";
+string solutionPath = string.Empty;
+string projectPath = string.Empty;
 
-//var solutionPath = "/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.sln";
-//var projectPath = @"/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.Fluent/WalletWasabi.Fluent.csproj";
+
+if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+{ 
+    solutionPath = @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.sln";
+    projectPath = @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj";
+}
+
+if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+{ 
+    solutionPath = "/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.sln";
+    projectPath = @"/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.Fluent/WalletWasabi.Fluent.csproj";
+}
+
 
 await Run(solutionPath, projectPath);
 return;
