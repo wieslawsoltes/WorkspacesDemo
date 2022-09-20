@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Buildalyzer;
+using Buildalyzer.Workspaces;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,11 +22,20 @@ public class SolutionLoader
         return true;
     }
 
-    public static bool CompileSolution(string solutionUrl, out Dictionary<string, MemoryStream> assemblies)
+    public static bool CompileSolution(string solutionFilePath, out Dictionary<string, MemoryStream> assemblies)
     {
         var success = true;
-        var workspace = MSBuildWorkspace.Create();
-        var solution = workspace.OpenSolutionAsync(solutionUrl).Result;
+        
+        
+        var manager = new AnalyzerManager(solutionFilePath);
+        var workspace = manager.GetWorkspace();
+        var solution = workspace.CurrentSolution;
+
+        
+        //var workspace = MSBuildWorkspace.Create();
+        //var solution = workspace.OpenSolutionAsync(solutionFilePath).Result;
+
+        
         var projectGraph = solution.GetProjectDependencyGraph(); 
 
         assemblies = new Dictionary<string, MemoryStream>();
@@ -48,7 +60,8 @@ public class SolutionLoader
             { 
                 var ms = new MemoryStream();
                 var result = projectCompilation.Emit(ms);
-                if (result.Success)
+                var errors = result.Diagnostics.Where(x => x.Severity == DiagnosticSeverity.Error);
+                if (result.Success || !errors.Any())
                 {
                     ms.Seek(0, SeekOrigin.Begin);
                     assemblies[projectCompilation.AssemblyName] = ms;
