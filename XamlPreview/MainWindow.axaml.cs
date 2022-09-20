@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -15,9 +16,12 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        
-        SolutionPath.Text =  @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.sln";
-        ProjectPath.Text = @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj";
+
+        SolutionPath.Text =  "/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.sln";
+        ProjectPath.Text = @"/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.Fluent/WalletWasabi.Fluent.csproj";
+
+        //SolutionPath.Text =  @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.sln";
+        //ProjectPath.Text = @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj";
     }
 
     private async void LoadButton_OnClick(object? sender, RoutedEventArgs e)
@@ -45,14 +49,44 @@ public partial class MainWindow : Window
 
                 var xaml = await File.ReadAllTextAsync(path);
 
+                Assembly? scriptAssembly = null;
+                
+/*
                 var loader = new ProjectLoader();
                 loader.Register();
 
                 var compilation = await loader.Compile(SolutionPath.Text, ProjectPath.Text);
                 var assembly = loader.GetScriptAssembly(compilation);
 
-                Assembly? scriptAssembly = assembly;
+                scriptAssembly = assembly;
+*/
 
+
+                SolutionLoader.Register();
+                if (!SolutionLoader.CompileSolution(SolutionPath.Text, out var assemblies))
+                {
+                    return;
+                }
+
+                var projectFilePath = ProjectPath.Text;
+                var projectFileName = Path.GetFileNameWithoutExtension(projectFilePath);
+                //var ms = assemblies.FirstOrDefault(x => x.Key.Equals(projectFileName)).Value;
+                var context = new AssemblyLoadContext(name: Path.GetRandomFileName(), isCollectible: true);
+
+                foreach (var kvp in assemblies)
+                {
+                    //var assembly = Assembly.Load(kvp.Value.ToArray());
+                    var assembly = context.LoadFromStream(kvp.Value);
+                    var types = assembly.GetTypes();
+                    if (kvp.Key.Equals(projectFileName))
+                    {
+                        scriptAssembly = assembly;
+                    }
+                }
+
+                //Assembly? scriptAssembly = context.LoadFromStream(ms);
+
+                
                 var control = AvaloniaRuntimeXamlLoader.Parse<IControl?>(xaml, scriptAssembly);
                 if (control is { })
                 {
