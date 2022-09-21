@@ -14,6 +14,10 @@ public class SolutionLoader
 {    
     public static bool Register()
     {
+        if (MSBuildLocator.IsRegistered)
+        {
+            return true;
+        }
         var defaultInstance = MSBuildLocator.RegisterDefaults();
         if (defaultInstance is null)
         {
@@ -53,7 +57,7 @@ public class SolutionLoader
                     .WithAllowUnsafe(true)
                     .WithOptimizationLevel(OptimizationLevel.Debug);
 
-            project = project.WithCompilationOptions(compilationOptions);
+            //project = project.WithCompilationOptions(compilationOptions);
 
             var projectCompilation = project.GetCompilationAsync().Result;
             if (projectCompilation is { } && !string.IsNullOrEmpty(projectCompilation.AssemblyName))
