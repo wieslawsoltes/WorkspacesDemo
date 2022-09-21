@@ -16,6 +16,10 @@ public class ProjectLoader
 {
     public bool Register()
     {
+        if (MSBuildLocator.IsRegistered)
+        {
+            return true;
+        }
         var defaultInstance = MSBuildLocator.RegisterDefaults();
         if (defaultInstance is null)
         {
