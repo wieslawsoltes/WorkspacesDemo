@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         WindowStartupLocation="CenterScreen"
-        Width="800" Height="450"
+        Width="1100" Height="550"
         x:Class="XamlPreview.MainWindow"
         Title="XamlPreview">
   <Grid RowDefinitions="Auto,Auto,Auto,*">
