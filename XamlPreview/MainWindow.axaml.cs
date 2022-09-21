@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -28,6 +29,66 @@ public partial class MainWindow : Window
         {
             SolutionPath.Text =  @"/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.sln";
             ProjectPath.Text = @"/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.Fluent/WalletWasabi.Fluent.csproj";
+        }
+    }
+
+    private async void BrowseSolutionButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var dlg = new OpenFileDialog()
+            {
+                Filters = new List<FileDialogFilter>()
+                {
+                    new() { Name = "Solution files (.sln)", Extensions = new List<string> { "sln" } },
+                    new() { Name = "All files", Extensions = new List<string> { "*" } }
+                },
+                AllowMultiple = false
+            };
+
+            var result = await dlg.ShowAsync(this);
+            if (result is { })
+            {
+                var path = result.FirstOrDefault();
+                if (path is not null)
+                {
+                    SolutionPath.Text = path;
+                }
+            }
+        }
+        catch (Exception exception)
+        {
+            Debug.WriteLine(exception);
+        }
+    }
+
+    private async void BrowseProjectButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var dlg = new OpenFileDialog()
+            {
+                Filters = new List<FileDialogFilter>()
+                {
+                    new() { Name = "Project files (.csproj)", Extensions = new List<string> { "csproj" } },
+                    new() { Name = "All files", Extensions = new List<string> { "*" } }
+                },
+                AllowMultiple = false
+            };
+
+            var result = await dlg.ShowAsync(this);
+            if (result is { })
+            {
+                var path = result.FirstOrDefault();
+                if (path is not null)
+                {
+                    ProjectPath.Text = path;
+                }
+            }
+        }
+        catch (Exception exception)
+        {
+            Debug.WriteLine(exception);
         }
     }
 
@@ -54,56 +115,65 @@ public partial class MainWindow : Window
                     return;
                 }
 
-                var xaml = await File.ReadAllTextAsync(path);
-
-                Assembly? scriptAssembly = null;
-                
-/*
-                var loader = new ProjectLoader();
-                loader.Register();
-
-                var compilation = await loader.Compile(SolutionPath.Text, ProjectPath.Text);
-                var assembly = loader.GetScriptAssembly(compilation);
-
-                scriptAssembly = assembly;
-*/
-
-
-                SolutionLoader.Register();
-                if (!SolutionLoader.CompileSolution(SolutionPath.Text, out var assemblies))
-                {
-                    return;
-                }
-
-                var projectFilePath = ProjectPath.Text;
-                var projectFileName = Path.GetFileNameWithoutExtension(projectFilePath);
-                //var ms = assemblies.FirstOrDefault(x => x.Key.Equals(projectFileName)).Value;
-                var context = new AssemblyLoadContext(name: Path.GetRandomFileName(), isCollectible: true);
-
-                foreach (var kvp in assemblies)
-                {
-                    //var assembly = Assembly.Load(kvp.Value.ToArray());
-                    var assembly = context.LoadFromStream(kvp.Value);
-                    var types = assembly.GetTypes();
-                    if (kvp.Key.Equals(projectFileName))
-                    {
-                        scriptAssembly = assembly;
-                    }
-                }
-
-                //Assembly? scriptAssembly = context.LoadFromStream(ms);
-
-                
-                var control = AvaloniaRuntimeXamlLoader.Parse<IControl?>(xaml, scriptAssembly);
-                if (control is { })
-                {
-                    XamlContentControl.Content = control;
-                }
+                await Load(path);
             }
         }
         catch (Exception exception)
         {
             Debug.WriteLine(exception);
         }
+    }
+
+    private async Task<bool> Load(string path)
+    {
+        var xaml = await File.ReadAllTextAsync(path);
+
+        Assembly? scriptAssembly = null;
+
+
+/*
+        var loader = new ProjectLoader();
+        loader.Register();
+
+        var compilation = await loader.Compile(SolutionPath.Text, ProjectPath.Text);
+        var assembly = loader.GetScriptAssembly(compilation);
+
+        scriptAssembly = assembly;
+*/
+
+
+        SolutionLoader.Register();
+        if (!SolutionLoader.CompileSolution(SolutionPath.Text, out var assemblies))
+        {
+            return true;
+        }
+
+        var projectFilePath = ProjectPath.Text;
+        var projectFileName = Path.GetFileNameWithoutExtension(projectFilePath);
+        //var ms = assemblies.FirstOrDefault(x => x.Key.Equals(projectFileName)).Value;
+        var context = new AssemblyLoadContext(name: Path.GetRandomFileName(), isCollectible: true);
+
+        foreach (var kvp in assemblies)
+        {
+            //var assembly = Assembly.Load(kvp.Value.ToArray());
+            var assembly = context.LoadFromStream(kvp.Value);
+            var types = assembly.GetTypes();
+            if (kvp.Key.Equals(projectFileName))
+            {
+                scriptAssembly = assembly;
+            }
+        }
+
+
+        // Assembly? scriptAssembly = context.LoadFromStream(ms);
+
+
+        var control = AvaloniaRuntimeXamlLoader.Parse<IControl?>(xaml, scriptAssembly);
+        if (control is { })
+        {
+            XamlContentControl.Content = control;
+        }
+
+        return false;
     }
 }
