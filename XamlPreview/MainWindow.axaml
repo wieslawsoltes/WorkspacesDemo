@@ -3,19 +3,31 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        WindowStartupLocation="CenterScreen"
+        Width="800" Height="450"
         x:Class="XamlPreview.MainWindow"
         Title="XamlPreview">
   <Grid RowDefinitions="Auto,Auto,Auto,*">
-    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
+
       <Label Content="Solution:" Grid.Row="0" Grid.Column="0" />
       <TextBox Name="SolutionPath" Grid.Row="0" Grid.Column="1" />
       <Button Name="BrowseSolutionButton" Content="..." Click="BrowseSolutionButton_OnClick" Grid.Row="0" Grid.Column="2" />
+
       <Label Content="Project:" Grid.Row="1" Grid.Column="0" />
       <TextBox Name="ProjectPath" Grid.Row="1" Grid.Column="1" />
       <Button Name="BrowseProjectButton" Content="..." Click="BrowseProjectButton_OnClick" Grid.Row="1" Grid.Column="2" />
+
+      <Label Content="Xaml:" Grid.Row="2" Grid.Column="0" />
+      <TextBox Name="XamlPath" Grid.Row="2" Grid.Column="1" />
+      <Button Name="BrowseXamlButton" Content="..." Click="BrowseXamlButton_OnClick" Grid.Row="2" Grid.Column="2" />
+
     </Grid>
-    
+
     <Button Name="LoadButton" Content="Load" Click="LoadButton_OnClick" Grid.Row="2" />
+
     <ContentControl Name="XamlContentControl" Grid.Row="3" />
+
   </Grid>
 </Window>
