@@ -244,7 +244,6 @@ public partial class MainWindow : Window
             {
                 //var assembly = Assembly.Load(kvp.Value.ToArray());
                 var assembly = context.LoadFromStream(kvp.Value);
-                var types = assembly.GetTypes();
                 if (kvp.Key.Equals(projectFileName))
                 {
                     scriptAssembly = assembly;
@@ -254,12 +253,20 @@ public partial class MainWindow : Window
 
             // Assembly? scriptAssembly = context.LoadFromStream(ms);
 
+            /*
+            var types = scriptAssembly.GetTypes();
+            var t = types.FirstOrDefault(x => x.Name == "MainView");
+            var c = Activator.CreateInstance(t);
+            XamlContentControl.Content = c;
+            //*/
 
+            //*
             var control = AvaloniaRuntimeXamlLoader.Parse<IControl?>(xaml, scriptAssembly);
             if (control is { })
             {
                 XamlContentControl.Content = control;
             }
+            //*/
             
         }
         catch (Exception exception)
