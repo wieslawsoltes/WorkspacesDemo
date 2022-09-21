@@ -6,8 +6,15 @@
         x:Class="XamlPreview.MainWindow"
         Title="XamlPreview">
   <Grid RowDefinitions="Auto,Auto,Auto,*">
-    <TextBox Name="SolutionPath" Grid.Row="0" />
-    <TextBox Name="ProjectPath" Grid.Row="1" />
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+      <Label Content="Solution:" Grid.Row="0" Grid.Column="0" />
+      <TextBox Name="SolutionPath" Grid.Row="0" Grid.Column="1" />
+      <Button Name="BrowseSolutionButton" Content="..." Click="BrowseSolutionButton_OnClick" Grid.Row="0" Grid.Column="2" />
+      <Label Content="Project:" Grid.Row="1" Grid.Column="0" />
+      <TextBox Name="ProjectPath" Grid.Row="1" Grid.Column="1" />
+      <Button Name="BrowseProjectButton" Content="..." Click="BrowseProjectButton_OnClick" Grid.Row="1" Grid.Column="2" />
+    </Grid>
+    
     <Button Name="LoadButton" Content="Load" Click="LoadButton_OnClick" Grid.Row="2" />
     <ContentControl Name="XamlContentControl" Grid.Row="3" />
   </Grid>
