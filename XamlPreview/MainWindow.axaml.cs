@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -13,65 +14,121 @@ using Avalonia.Markup.Xaml;
 
 namespace XamlPreview;
 
+public class Config
+{
+    public string? SolutionFilePath { get; set; }
+
+    public string? ProjectFilePath { get; set; }
+    
+    public string? XamlFilePath { get; set; }
+}
+
 public partial class MainWindow : Window
 {
+    private const string ConfigFileJson = "config.json";
+
     public MainWindow()
     {
         InitializeComponent();
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            SolutionPath.Text =  @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.sln";
-            ProjectPath.Text = @"c:\Users\Administrator\Documents\GitHub\WalletWasabi\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj";
+            var basePath = @"c:\Users\Administrator\Documents\GitHub\WalletWasabi";
+            SolutionPath.Text =  @$"{basePath}\WalletWasabi.sln";
+            ProjectPath.Text = @$"{basePath}\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj";
+            XamlPath.Text = @$"{basePath}\WalletWasabi.Fluent\Views\Wallets\ClosedHardwareWalletView.axaml";
         }
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            SolutionPath.Text =  @"/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.sln";
-            ProjectPath.Text = @"/Users/wieslawsoltes/Documents/GitHub/WalletWasabi/WalletWasabi.Fluent/WalletWasabi.Fluent.csproj";
+            var basePath = @"/Users/wieslawsoltes/Documents/GitHub/WalletWasabi";
+            SolutionPath.Text =  @$"{basePath}/WalletWasabi.sln";
+            ProjectPath.Text = @$"{basePath}/WalletWasabi.Fluent/WalletWasabi.Fluent.csproj";
+            XamlPath.Text = @$"{basePath}/WalletWasabi.Fluent/Views/Wallets/ClosedHardwareWalletView.axaml";
         }
+    }
+
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+        LoadConfig(ConfigFileJson);
+    }
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        base.OnClosing(e);
+        SaveConfig(ConfigFileJson);
     }
 
     private async void BrowseSolutionButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        try
-        {
-            var dlg = new OpenFileDialog()
-            {
-                Filters = new List<FileDialogFilter>()
-                {
-                    new() { Name = "Solution files (.sln)", Extensions = new List<string> { "sln" } },
-                    new() { Name = "All files", Extensions = new List<string> { "*" } }
-                },
-                AllowMultiple = false
-            };
-
-            var result = await dlg.ShowAsync(this);
-            if (result is { })
-            {
-                var path = result.FirstOrDefault();
-                if (path is not null)
-                {
-                    SolutionPath.Text = path;
-                }
-            }
-        }
-        catch (Exception exception)
-        {
-            Debug.WriteLine(exception);
-        }
+        await BrowseSolution();
     }
 
     private async void BrowseProjectButton_OnClick(object? sender, RoutedEventArgs e)
     {
+        await BrowseProject();
+    }
+
+    private async void BrowseXamlButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        await BrowseXaml();
+    }
+
+    private async void LoadButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        await Load(XamlPath.Text);
+    }
+
+    private void LoadConfig(string configFileJson)
+    {
+        if (File.Exists(configFileJson))
+        {
+            var json = File.ReadAllText(configFileJson);
+            var config = System.Text.Json.JsonSerializer.Deserialize<Config>(json);
+            if (config is { })
+            {
+                if (config.SolutionFilePath is { })
+                {
+                    SolutionPath.Text = config.SolutionFilePath;
+                }
+
+                if (config.ProjectFilePath is { })
+                {
+                    ProjectPath.Text = config.ProjectFilePath;
+                }
+
+                if (config.XamlFilePath is { })
+                {
+                    XamlPath.Text = config.XamlFilePath;
+                }
+            }
+        }
+    }
+
+    private void SaveConfig(string configFileJson)
+    {
+        var config = new Config
+        {
+            SolutionFilePath = SolutionPath.Text,
+            ProjectFilePath = ProjectPath.Text,
+            XamlFilePath = XamlPath.Text
+        };
+
+        var json = System.Text.Json.JsonSerializer.Serialize(config);
+        File.WriteAllText(configFileJson, json);
+    }
+
+    private async Task BrowseProject()
+    {
         try
         {
-            var dlg = new OpenFileDialog()
+            var dlg = new OpenFileDialog
             {
-                Filters = new List<FileDialogFilter>()
+                Filters = new List<FileDialogFilter>
                 {
-                    new() { Name = "Project files (.csproj)", Extensions = new List<string> { "csproj" } },
-                    new() { Name = "All files", Extensions = new List<string> { "*" } }
+                    new() { Name = "Project files (*.csproj)", Extensions = new List<string> { "csproj" } },
+                    new() { Name = "All files (*.*)", Extensions = new List<string> { "*" } }
                 },
                 AllowMultiple = false
             };
@@ -92,16 +149,16 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void LoadButton_OnClick(object? sender, RoutedEventArgs e)
+    private async Task BrowseSolution()
     {
         try
         {
-            var dlg = new OpenFileDialog()
+            var dlg = new OpenFileDialog
             {
-                Filters = new List<FileDialogFilter>()
+                Filters = new List<FileDialogFilter>
                 {
-                    new() { Name = "Xaml files (.axaml)", Extensions = new List<string> { "axaml" } },
-                    new() { Name = "All files", Extensions = new List<string> { "*" } }
+                    new() { Name = "Solution files (*.sln)", Extensions = new List<string> { "sln" } },
+                    new() { Name = "All files (*.*)", Extensions = new List<string> { "*" } }
                 },
                 AllowMultiple = false
             };
@@ -110,12 +167,10 @@ public partial class MainWindow : Window
             if (result is { })
             {
                 var path = result.FirstOrDefault();
-                if (path is null)
+                if (path is not null)
                 {
-                    return;
+                    SolutionPath.Text = path;
                 }
-
-                await Load(path);
             }
         }
         catch (Exception exception)
@@ -124,56 +179,92 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task<bool> Load(string path)
+    private async Task BrowseXaml()
     {
-        var xaml = await File.ReadAllTextAsync(path);
-
-        Assembly? scriptAssembly = null;
-
-
-/*
-        var loader = new ProjectLoader();
-        loader.Register();
-
-        var compilation = await loader.Compile(SolutionPath.Text, ProjectPath.Text);
-        var assembly = loader.GetScriptAssembly(compilation);
-
-        scriptAssembly = assembly;
-*/
-
-
-        SolutionLoader.Register();
-        if (!SolutionLoader.CompileSolution(SolutionPath.Text, out var assemblies))
+        try
         {
-            return true;
-        }
-
-        var projectFilePath = ProjectPath.Text;
-        var projectFileName = Path.GetFileNameWithoutExtension(projectFilePath);
-        //var ms = assemblies.FirstOrDefault(x => x.Key.Equals(projectFileName)).Value;
-        var context = new AssemblyLoadContext(name: Path.GetRandomFileName(), isCollectible: true);
-
-        foreach (var kvp in assemblies)
-        {
-            //var assembly = Assembly.Load(kvp.Value.ToArray());
-            var assembly = context.LoadFromStream(kvp.Value);
-            var types = assembly.GetTypes();
-            if (kvp.Key.Equals(projectFileName))
+            var dlg = new OpenFileDialog
             {
-                scriptAssembly = assembly;
+                Filters = new List<FileDialogFilter>
+                {
+                    new() { Name = "Xaml files (*.xaml,*.axaml)", Extensions = new List<string> { "xaml", "axaml" } },
+                    new() { Name = "All files (*.*)", Extensions = new List<string> { "*" } }
+                },
+                AllowMultiple = false
+            };
+
+            var result = await dlg.ShowAsync(this);
+            if (result is { })
+            {
+                var path = result.FirstOrDefault();
+                if (path is not null)
+                {
+                    XamlPath.Text = path;
+                }
             }
         }
-
-
-        // Assembly? scriptAssembly = context.LoadFromStream(ms);
-
-
-        var control = AvaloniaRuntimeXamlLoader.Parse<IControl?>(xaml, scriptAssembly);
-        if (control is { })
+        catch (Exception exception)
         {
-            XamlContentControl.Content = control;
+            Debug.WriteLine(exception);
         }
+    }
 
-        return false;
+    private async Task Load(string path)
+    {
+        try
+        {
+            var xaml = await File.ReadAllTextAsync(path);
+
+            Assembly? scriptAssembly = null;
+
+
+    /*
+            var loader = new ProjectLoader();
+            loader.Register();
+
+            var compilation = await loader.Compile(SolutionPath.Text, ProjectPath.Text);
+            var assembly = loader.GetScriptAssembly(compilation);
+
+            scriptAssembly = assembly;
+    */
+
+
+            SolutionLoader.Register();
+            if (!SolutionLoader.CompileSolution(SolutionPath.Text, out var assemblies))
+            {
+                return;
+            }
+
+            var projectFilePath = ProjectPath.Text;
+            var projectFileName = Path.GetFileNameWithoutExtension(projectFilePath);
+            //var ms = assemblies.FirstOrDefault(x => x.Key.Equals(projectFileName)).Value;
+            var context = new AssemblyLoadContext(name: Path.GetRandomFileName(), isCollectible: true);
+
+            foreach (var kvp in assemblies)
+            {
+                //var assembly = Assembly.Load(kvp.Value.ToArray());
+                var assembly = context.LoadFromStream(kvp.Value);
+                var types = assembly.GetTypes();
+                if (kvp.Key.Equals(projectFileName))
+                {
+                    scriptAssembly = assembly;
+                }
+            }
+
+
+            // Assembly? scriptAssembly = context.LoadFromStream(ms);
+
+
+            var control = AvaloniaRuntimeXamlLoader.Parse<IControl?>(xaml, scriptAssembly);
+            if (control is { })
+            {
+                XamlContentControl.Content = control;
+            }
+            
+        }
+        catch (Exception exception)
+        {
+            Debug.WriteLine(exception);
+        }
     }
 }
