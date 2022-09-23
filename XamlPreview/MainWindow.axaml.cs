@@ -214,7 +214,7 @@ public partial class MainWindow : Window
         try
         {
             {
-                //Directory.SetCurrentDirectory(Path.GetDirectoryName(path));
+                /*
                 var context1 = new AssemblyLoadContext(name: Path.GetRandomFileName(), isCollectible: true);
                 context1.Resolving += (loadContext, name) =>
                 {
@@ -222,14 +222,19 @@ public partial class MainWindow : Window
                     var f = Path.Combine(p, name.Name + ".dll");
                     return Assembly.LoadFile(f);
                 };
-                
-                
+
                 var rawAssembly = File.Open(path, FileMode.Open);
                 var scriptAssembly1 = context1.LoadFromStream(rawAssembly);
+                */
+                var resolver = new AssemblyResolver(path);
+                var scriptAssembly1 = resolver.Assembly;
+
                 var types = scriptAssembly1.GetTypes();
                 var t = types.FirstOrDefault(x => x.Name == "MainView");
                 var c = Activator.CreateInstance(t);
                 XamlContentControl.Content = c;
+                
+                
             }
             return;
             
