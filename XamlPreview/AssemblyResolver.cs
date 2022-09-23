@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -20,13 +21,14 @@ internal sealed class AssemblyResolver : IDisposable
         this.Assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(path);
         this.dependencyContext = DependencyContext.Load(this.Assembly);
 
-        this.assemblyResolver = new CompositeCompilationAssemblyResolver
-        (new ICompilationAssemblyResolver[]
+        var compilationAssemblyResolvers = new ICompilationAssemblyResolver[]
         {
             new AppBaseCompilationAssemblyResolver(Path.GetDirectoryName(path)),
             new ReferenceAssemblyPathResolver(),
             new PackageCompilationAssemblyResolver()
-        });
+        };
+        this.assemblyResolver = new CompositeCompilationAssemblyResolver(
+            compilationAssemblyResolvers);
 
         this.loadContext = AssemblyLoadContext.GetLoadContext(this.Assembly);
         this.loadContext.Resolving += OnResolving;
@@ -46,8 +48,7 @@ internal sealed class AssemblyResolver : IDisposable
             return string.Equals(runtime.Name, name.Name, StringComparison.OrdinalIgnoreCase);
         }
 
-        RuntimeLibrary library =
-            this.dependencyContext.RuntimeLibraries.FirstOrDefault(NamesMatch);
+        var library = this.dependencyContext.RuntimeLibraries.FirstOrDefault(NamesMatch);
         if (library != null)
         {
             var wrapper = new CompilationLibrary(
@@ -58,11 +59,17 @@ internal sealed class AssemblyResolver : IDisposable
                 library.RuntimeAssemblyGroups.SelectMany(g => g.AssetPaths),
                 library.Dependencies,
                 library.Serviceable);
+            
+            Debug.WriteLine($"{library.Type}, {library.Name}");
 
             var assemblies = new List<string>();
             this.assemblyResolver.TryResolveAssemblyPaths(wrapper, assemblies);
             if (assemblies.Count > 0)
             {
+                foreach (var assembly in assemblies)
+                {
+                    Debug.WriteLine($"  assembly={assembly}");
+                }
                 return this.loadContext.LoadFromAssemblyPath(assemblies[0]);
             }
         }
